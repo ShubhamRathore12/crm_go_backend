@@ -1,16 +1,42 @@
 package db
 
 import (
+	"context"
 	"crm-backend/internal/config"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"sync"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
+
+// ipv4Dialer forces IPv4-only TCP connections, avoiding IPv6 issues on Render
+type ipv4Dialer struct{}
+
+func (ipv4Dialer) Dial(network, address string) (net.Conn, error) {
+	return net.Dial("tcp4", address)
+}
+
+func (ipv4Dialer) DialTimeout(network, address string, timeout time.Duration) (net.Conn, error) {
+	return net.DialTimeout("tcp4", address, timeout)
+}
+
+type ipv4Connector struct{ dsn string }
+
+func (c *ipv4Connector) Connect(_ context.Context) (driver.Conn, error) {
+	return pq.DialOpen(ipv4Dialer{}, c.dsn)
+}
+
+func (c *ipv4Connector) Driver() driver.Driver { return &pq.Driver{} }
+
+func openDB(dsn string) *sql.DB {
+	return sql.OpenDB(&ipv4Connector{dsn: dsn})
+}
 
 // QueuedWrite represents a write operation to be retried
 type QueuedWrite struct {
@@ -30,11 +56,8 @@ type DatabaseManager struct {
 
 // NewDatabaseManager creates a new database manager
 func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
-	// Connect to primary database
-	primary, err := sql.Open("postgres", cfg.DatabaseURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open primary database: %w", err)
-	}
+	// Connect to primary database (IPv4-forced to work on Render)
+	primary := openDB(cfg.DatabaseURL)
 
 	// Set connection pool settings
 	primary.SetMaxOpenConns(10)
@@ -48,11 +71,8 @@ func NewDatabaseManager(cfg *config.Config) (*DatabaseManager, error) {
 
 	var secondary *sql.DB
 	if cfg.SecondaryDatabaseURL != nil {
-		secondary, err = sql.Open("postgres", *cfg.SecondaryDatabaseURL)
-		if err != nil {
-			log.Printf("Warning: failed to open secondary database: %v", err)
-			secondary = nil
-		} else {
+		secondary = openDB(*cfg.SecondaryDatabaseURL)
+		{
 			secondary.SetMaxOpenConns(5)
 			secondary.SetMaxIdleConns(3)
 			secondary.SetConnMaxLifetime(time.Hour)
