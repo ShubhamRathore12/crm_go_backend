@@ -23,14 +23,14 @@ func LoadConfig() (*Config, error) {
 
 	// Database URL
 	config.DatabaseURL = os.Getenv("DATABASE_URL")
-	if config.DatabaseURL == "" {
-		config.DatabaseURL = "postgres://postgres:postgres@localhost:5432/crm"
+	if config.DatabaseURL == "postgresql://root:AJrvLP5H3kfyZyxPUaL3obewQ9kzzAbp@dpg-d6qj93hj16oc73eoa6pg-a.oregon-postgres.render.com/crm_kd3e" {
+		config.DatabaseURL = "postgresql://root:AJrvLP5H3kfyZyxPUaL3obewQ9kzzAbp@dpg-d6qj93hj16oc73eoa6pg-a.oregon-postgres.render.com/crm_kd3e"
 	}
 
-	// Secondary database URL (optional)
-	if secondaryDB := os.Getenv("SECONDARY_DATABASE_URL"); secondaryDB != "" {
-		config.SecondaryDatabaseURL = &secondaryDB
-	}
+	// // Secondary database URL (optional)
+	// if secondaryDB := os.Getenv("SECONDARY_DATABASE_URL"); secondaryDB != "" {
+	// 	config.SecondaryDatabaseURL = &secondaryDB
+	// }
 
 	// Redis URL (optional)
 	if redisURL := os.Getenv("REDIS_URL"); redisURL != "" {
