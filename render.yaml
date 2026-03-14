@@ -1,36 +1,17 @@
 services:
-  # Web Service
   - type: web
     name: crm-backend
-    runtime: go
+    env: docker
     region: oregon
     plan: starter
     branch: main
-    buildCommand: go build -o crm-backend ./cmd/server/main.go
-    startCommand: ./crm-backend
     healthCheckPath: /health
     envVars:
-      - key: PORT
-        value: 8080
       - key: DATABASE_URL
-        fromDatabase:
-          name: crm-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRY_SECS
         value: 86400
       - key: API_BASE_URL
         sync: false
-      - key: REDIS_URL
-        fromDatabase:
-          name: crm-redis
-          property: connectionString
-      - key: SECONDARY_DATABASE_URL
-        sync: false
-databases:
-  - name: crm-db
-    databaseName: crm
-    user: crmuser
-    plan: starter
-    ipAllowList: []
