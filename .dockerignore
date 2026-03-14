@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Development
+.env
+.env.*
+!.env.example
+*.md
+!README.md
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+coverage.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rust files (from original project)
+src/
+Cargo.toml
+Cargo.lock
+target/
+
+# Documentation
+CONVERSION_SUMMARY.md
+QUICKSTART.md
+DEPLOYMENT_RENDER.md
+
+# Scripts
+build.bat
