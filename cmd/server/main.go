@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -32,6 +33,15 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer database.Close()
+
+	// Run migrations
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	if migrationsDir == "" {
+		migrationsDir = "./migrations"
+	}
+	if err := db.RunMigrations(database.Primary(), migrationsDir); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
 
 	// Initialize WebSocket manager
 	wsManager := websocket.NewManager()

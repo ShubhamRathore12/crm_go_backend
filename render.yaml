@@ -8,10 +8,21 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: crm-postgres
+          property: connectionString
+      - key: MIGRATIONS_DIR
+        value: /app/migrations
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRY_SECS
         value: 86400
       - key: API_BASE_URL
         sync: false
+
+databases:
+  - name: crm-postgres
+    databaseName: crm
+    user: crm_user
+    plan: starter
+    region: oregon
